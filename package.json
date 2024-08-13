@@ -1,0 +1,10 @@
+{
+  "name": "ben-s-smartfolio",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix client\" \"npm run dev --prefix admin\""
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
+}

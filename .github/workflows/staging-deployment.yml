@@ -26,16 +26,13 @@ jobs:
       run: npm run build
       working-directory: ./client
 
-    - name: Add SSH key
-      run: |
-        mkdir -p ~/.ssh
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-        ssh-keyscan 89.213.45.71 >> ~/.ssh/known_hosts
-
     - name: Deploy to Staging Server
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
       run: |
-        ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no root@89.213.45.71 "
+        echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519 &&
+        chmod 600 ~/.ssh/id_ed25519 &&
+        ssh -o StrictHostKeyChecking=no root@89.213.45.71 "
         cd /var/www/smartfolio/staging/client &&
         git pull origin main &&
         npm install &&

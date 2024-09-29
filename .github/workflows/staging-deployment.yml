@@ -1,4 +1,4 @@
-name: 🚀 Deploy to Staging
+name: Deploy to Staging
 
 on:
   push:
@@ -10,55 +10,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # Checkout the latest code
-    - name: 📥 Checkout the code
+    - name: Checkout code
       uses: actions/checkout@v2
 
-    # Set up Node.js environment
-    - name: 🔧 Set up Node.js
+    - name: Set up Node.js
       uses: actions/setup-node@v2
       with:
-        node-version: '16' # Adapt to your Node.js version
+        node-version: '16'
 
-    # Install dependencies
-    - name: 📦 Install dependencies
+    - name: Install dependencies
       run: npm install
-      working-directory: ./client # or ./admin depending on the context
+      working-directory: ./client
 
-    # Build the project
-    - name: 🛠️ Build the project
+    - name: Build the project
       run: npm run build
       working-directory: ./client
 
-    # Deploy to Staging Server
-    - name: 🚀 Deploy to Staging Server
+    - name: Deploy to Staging Server
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY_STAGING_SMARTFOLIO }}
       run: |
-        echo "🔑 Setting up SSH access"
         mkdir -p ~/.ssh
-        echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519_staging_smartfolio
+        echo "${SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/id_ed25519_staging_smartfolio
         chmod 600 ~/.ssh/id_ed25519_staging_smartfolio
-        echo "🚀 Starting deployment to the Staging Server"
-        
         ssh -i ~/.ssh/id_ed25519_staging_smartfolio -o StrictHostKeyChecking=no root@89.213.45.71 "
           cd /var/www/smartfolio/staging/client &&
-          echo '📥 Pulling latest code from GitHub' &&
           git pull origin main &&
-          echo '📦 Installing dependencies' &&
           npm install &&
-          echo '🛠️ Building the project' &&
           npm run build &&
-          echo '🔄 Restarting Nginx server' &&
           systemctl restart nginx
         "
-
-    # Success message
-    - name: 🎉 Deployment successful
-      if: success()
-      run: echo "✅ Staging deployment completed successfully! 🎉"
-
-    # Failure message
-    - name: ❌ Deployment failed
-      if: failure()
-      run: echo "🚨 Staging deployment failed. Please check the logs. ❌"

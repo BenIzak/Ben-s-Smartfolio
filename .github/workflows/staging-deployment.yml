@@ -28,14 +28,15 @@ jobs:
 
     - name: Deploy to Staging Server
       env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY_STAGING_SMARTFOLIO }}
       run: |
-        echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519 &&
-        chmod 600 ~/.ssh/id_ed25519 &&
+        mkdir -p ~/.ssh
+        echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
         ssh -o StrictHostKeyChecking=no root@89.213.45.71 "
-        cd /var/www/smartfolio/staging/client &&
-        git pull origin main &&
-        npm install &&
-        npm run build &&
-        systemctl restart nginx
+          cd /var/www/smartfolio/staging/client &&
+          git pull origin main &&
+          npm install &&
+          npm run build &&
+          systemctl restart nginx
         "

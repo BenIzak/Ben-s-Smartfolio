@@ -26,6 +26,12 @@ jobs:
       run: npm run build
       working-directory: ./client
 
+    - name: SSh private key
+      run: |
+        eval $(ssh-agent -s)
+        echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+        ssh-add -L
+
     - name: Deploy to Staging Server
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY_STAGING_SMARTFOLIO }}
@@ -44,8 +50,3 @@ jobs:
         "
         echo "🚀 Deployment to Staging Server completed!"
 
-    - name: SSh private key
-      run: |
-        eval $(ssh-agent -s)
-        echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-        ssh-add -L

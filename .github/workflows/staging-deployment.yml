@@ -28,8 +28,10 @@ jobs:
 
     - name: Deploy to Staging Server
       env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY_BEN_LEMAGNIFIQUE }}
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY_STAGING_SMARTFOLIO }}
       run: |
+      
+        echo "🔑 Setting up SSH access for " 
         mkdir -p ~/.ssh
         echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
         chmod 600 ~/.ssh/id_ed25519
@@ -40,3 +42,10 @@ jobs:
           npm run build &&
           systemctl restart nginx
         "
+        echo "🚀 Deployment to Staging Server completed!"
+
+    - name: SSh private key
+      run: |
+        eval $(ssh-agent -s)
+        echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+        ssh-add -L

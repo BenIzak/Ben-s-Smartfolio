@@ -44,7 +44,7 @@ jobs:
         echo '⚙️  Building client...' &&
         cp -r dist/* /var/www/smartfolio/staging/client/ &&
         echo '✅ Client files copied to staging' &&
-        /usr/bin/systemctl restart nginx &&
+        sudo /usr/bin/systemctl restart nginx &&
         echo '🔄 Nginx restarted for client'"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}

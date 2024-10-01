@@ -44,7 +44,7 @@ jobs:
         echo '⚙️  Building client...' &&
         cp -r dist/* /var/www/smartfolio/staging/client/ &&
         echo '✅ Client files copied to staging' &&
-        sudo systemctl restart nginx &&
+        systemctl systemctl restart nginx &&
         echo '🔄 Nginx restarted for client'"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -61,7 +61,7 @@ jobs:
         echo '⚙️  Building admin...' &&
         cp -r dist/* /var/www/smartfolio/staging/admin/ &&
         echo '✅ Admin files copied to staging' &&
-        sudo systemctl restart nginx &&
+        systemctl systemctl restart nginx &&
         echo '🔄 Nginx restarted for admin'"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -75,7 +75,7 @@ jobs:
         git pull origin main || { echo '❌ Git pull failed'; exit 1; } &&
         npm install || { echo '❌ npm install failed'; exit 1; } &&
         echo '✅ API updated successfully' &&
-        sudo systemctl restart api_service_name &&
+        systemctl systemctl restart api_service_name &&
         echo '🔄 API service restarted'"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}

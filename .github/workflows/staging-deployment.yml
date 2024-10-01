@@ -26,27 +26,48 @@ jobs:
       run: npm run build
       working-directory: ./client
 
-    - name: SSh private key
+    - name: 🔑 Check if SSH Private Key is available
       run: |
-        eval $(ssh-agent -s)
-        echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-        ssh-add -L
+        if [ -z "${{ secrets.SSH_PRIVATE_KEY_STAGING_SMARTFOLIO }}" ]; then
+          echo "❌ SSH_PRIVATE_KEY is not available. Please check your GitHub Secrets configuration."
+          exit 1
+        else
+          echo "✅ SSH_PRIVATE_KEY is available."
+        fi
 
-    - name: Deploy to Staging Server
-      env:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY_STAGING_SMARTFOLIO }}
+    - name: 🔧 Debug SSH setup
       run: |
-      
-        echo "🔑 Setting up SSH access for " 
+        echo "🔑 Setting up SSH access"
         mkdir -p ~/.ssh
-        echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519
-        chmod 600 ~/.ssh/id_ed25519
-        ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ben_lemagnifique@89.213.45.71 "
+        echo "${{ secrets.SSH_PRIVATE_KEY_STAGING_SMARTFOLIO }}" > ~/.ssh/id_ed25519_staging_smartfolio
+        chmod 600 ~/.ssh/id_ed25519_staging_smartfolio
+        echo "✅ SSH key saved in ~/.ssh/id_ed25519_staging_smartfolio"
+
+        echo "🔍 Checking SSH key permissions"
+        ls -la ~/.ssh/id_ed25519_staging_smartfolio
+
+        echo "🔍 Testing SSH connection to server"
+        ssh -i ~/.ssh/id_ed25519_staging_smartfolio -o StrictHostKeyChecking=no -T ben_lemagnifique@89.213.45.71 exit
+        if [ $? -ne 0 ]; then
+          echo "❌ Failed to establish SSH connection. Please verify the SSH key and user permissions."
+          exit 1
+        else
+          echo "✅ SSH connection to server is successful."
+        fi
+
+    - name: 🚀 Deploy to Staging Server
+      run: |
+        echo "🚀 Starting deployment to the Staging Server"
+        ssh -i ~/.ssh/id_ed25519_staging_smartfolio -o StrictHostKeyChecking=no ben_lemagnifique@89.213.45.71 "
           cd /var/www/smartfolio/staging/client &&
           git pull origin main &&
           npm install &&
           npm run build &&
           systemctl restart nginx
         "
-        echo "🚀 Deployment to Staging Server completed!"
-
+        if [ $? -eq 0 ]; then
+          echo "✅ Deployment to Staging Server completed successfully! 🎉"
+        else
+          echo "❌ Deployment failed. Please check the logs for details."
+          exit 1
+        fi

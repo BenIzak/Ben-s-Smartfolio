@@ -64,10 +64,11 @@ jobs:
         echo '⚙️  Building admin...' &&
         cp -r dist/* /var/www/smartfolio/staging/admin/ &&
         echo '✅ Admin files copied to staging' &&
-        /usr/bin/systemctl restart nginx &&
+        echo '${{ secrets.SSH_PASSWORD }}' | sudo -S /usr/bin/systemctl restart nginx &&
         echo '🔄 Nginx restarted for admin'"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
 
     # Étape 6 : Déploiement de l'API
     - name: 🧰 Deploy API
@@ -78,8 +79,9 @@ jobs:
         git pull origin main || { echo '❌ Git pull failed'; exit 1; } &&
         npm install || { echo '❌ npm install failed'; exit 1; } &&
         echo '✅ API updated successfully' &&
-        /usr/bin/systemctl restart api_service_name &&
+        echo '${{ secrets.SSH_PASSWORD }}' | sudo -S /usr/bin/systemctl restart api_service_name &&
         echo '🔄 API service restarted'"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
 

@@ -44,10 +44,11 @@ jobs:
         echo '⚙️  Building client...' &&
         cp -r dist/* /var/www/smartfolio/staging/client/ &&
         echo '✅ Client files copied to staging' &&
-        systemctl systemctl restart nginx &&
+        /usr/bin/systemctl restart nginx &&
         echo '🔄 Nginx restarted for client'"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
 
     # Étape 5 : Déploiement de l'admin 
     - name: 🛠️ Deploy admin

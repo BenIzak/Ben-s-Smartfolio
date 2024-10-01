@@ -10,39 +10,64 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    # Étape 1 : Checkout le code
+    - name: 📥 Checkout code
       uses: actions/checkout@v2
+      with:
+        fetch-depth: 1  # Limite la profondeur du checkout pour une meilleure performance
 
-    - name: Set up Node.js
+    # Étape 2 : Configuration Node.js
+    - name: ⚙️ Set up Node.js
       uses: actions/setup-node@v2
       with:
         node-version: '16'
 
-    - name: Install dependencies
-      run: npm install
-      working-directory: ./client
-
-    - name: Build the project
-      run: npm run build
-      working-directory: ./client
-
-    - name: Deploy to Staging Server
+    # Étape 3 : Mise à jour du dossier client
+    - name: 🚀 Deploy client
+      run: |
+        echo "🚧 Starting client update..."
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519 &&
+        chmod 600 ~/.ssh/id_ed25519 &&
+        ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
+        cd /var/www/smartfolio/repo/Ben-s-Smartfolio/client &&
+        git pull origin main || { echo '❌ Git pull failed'; exit 1; } &&
+        npm install || { echo '❌ npm install failed'; exit 1; } &&
+        npm run build || { echo '❌ Build failed'; exit 1; } &&
+        echo '⚙️  Building client...' &&
+        cp -r dist/* /var/www/smartfolio/staging/client/ &&
+        echo '✅ Client files copied to staging' &&
+        systemctl restart nginx &&
+        echo '🔄 Nginx restarted for client'"
       env:
         SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    # Étape 4 : Mise à jour du dossier admin
+    - name: 🛠️ Deploy admin
       run: |
-        echo "🔑 Setting up SSH access"
-        mkdir -p ~/.ssh
-        echo "${SSH_PRIVATE_KEY}" > ~/.ssh/id_ed25519_staging_smartfolio
-        chmod 600 ~/.ssh/id_ed25519_staging_smartfolio
-        ssh -i ~/.ssh/id_ed25519_staging_smartfolio -o StrictHostKeyChecking=no ben_lemagnifique@89.213.45.71 "
-          echo '🚀 Pulling the latest changes from GitHub'
-          cd /var/www/smartfolio/repo/Ben-s-Smartfolio &&
-          git pull origin main && 
-          echo '📦 Building the project' &&
-          npm install &&
-          npm run build &&
-          echo '🚚 Copying build to staging folder' &&
-          cp -r ./client/dist/* /var/www/smartfolio/staging/client/ &&
-          echo '🔄 Restarting Nginx' &&
-          systemctl restart nginx
-        "
+        echo "🚧 Starting admin update..."
+        ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
+        cd /var/www/smartfolio/repo/Ben-s-Smartfolio/admin &&
+        git pull origin main || { echo '❌ Git pull failed'; exit 1; } &&
+        npm install || { echo '❌ npm install failed'; exit 1; } &&
+        npm run build || { echo '❌ Build failed'; exit 1; } &&
+        echo '⚙️  Building admin...' &&
+        cp -r dist/* /var/www/smartfolio/staging/admin/ &&
+        echo '✅ Admin files copied to staging' &&
+        systemctl restart nginx &&
+        echo '🔄 Nginx restarted for admin'"
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    # Étape 5 : Mise à jour du dossier API
+    - name: 🧰 Deploy API
+      run: |
+        echo "🚧 Starting API update..."
+        ssh -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SERVER_IP }} "
+        cd /var/www/smartfolio/repo/Ben-s-Smartfolio/backend &&
+        git pull origin main || { echo '❌ Git pull failed'; exit 1; } &&
+        npm install || { echo '❌ npm install failed'; exit 1; } &&
+        echo '✅ API updated successfully' &&
+        systemctl restart api_service_name &&
+        echo '🔄 API service restarted'"
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
